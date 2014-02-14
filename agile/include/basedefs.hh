@@ -25,7 +25,7 @@
 #include "yaml-cpp/yaml_core.hh"
 
 typedef double numeric;
-enum layer_type { linear, rectified, sigmoid, softmax };
+enum layer_type { linear, rectified, sigmoid, softmax }; // HUH?!?
 
 namespace agile
 {
