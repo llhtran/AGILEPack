@@ -126,13 +126,17 @@ void autoencoder::encode(const agile::vector &v, bool noisify)
     agile::vector error = reconstruct(v, noisify) - v;  
     decoder.backpropagate(error);
     backpropagate(decoder.dump_below());
-    // getchar();
+}
+//----------------------------------------------------------------------------
+void autoencoder::encode(const agile::vector &v, double weight, bool noisify)
+{
+    agile::vector error = reconstruct(v, noisify) - v;  
+    decoder.backpropagate(error, weight);
+    backpropagate(decoder.dump_below(), weight);
 }
 //----------------------------------------------------------------------------
 agile::vector autoencoder::reconstruct(const agile::vector &v, bool noisify)
 {
-    // std::cout << "input = \n" << v << std::endl;
-
     if (noisify)
     {
         this->charge(agile::functions::add_noise(v));
@@ -142,8 +146,6 @@ agile::vector autoencoder::reconstruct(const agile::vector &v, bool noisify)
         this->charge(v);
     }
     decoder.charge(this->fire());
-    // std::cout << "decoder.fire() = \n" << decoder.fire() << std::endl;
-    // getchar();
     return decoder.fire();
 }
 //----------------------------------------------------------------------------
@@ -151,6 +153,12 @@ agile::vector autoencoder::get_encoding(const agile::vector &v)
 {
     this->charge(v);
     return std::move(this->fire());
+}
+//----------------------------------------------------------------------------
+agile::vector autoencoder::decode(const agile::vector &v)
+{
+    decoder.charge(v);
+    return decoder.fire();
 }
 //----------------------------------------------------------------------------
 autoencoder::~autoencoder()

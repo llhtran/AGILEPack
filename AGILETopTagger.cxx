@@ -12,7 +12,7 @@ const std::string timestamp(void);
 //----------------------------------------------------------------------------
 int main(int argc, char const *argv[])
 {
-    std::string s("A simple CLI for AGILEPack centered around providing ");
+    std::string s("A simple CLI for AGILETopTagger centered around providing ");
     s += "functionality for \ntraining and testing Deep Learning";
 
     optionparser::parser p(s + " models on ROOT TTrees");
@@ -20,22 +20,22 @@ int main(int argc, char const *argv[])
 //----------------------------------------------------------------------------
     p.add_option("--file", "-f")    .help("Pass at least one file to add to a TChain for training.")
                                     .mode(optionparser::store_mult_values);
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     p.add_option("--tree", "-t")    .help("Name of the TTree to extract.")
                                     .mode(optionparser::store_value);
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     p.add_option("--save", "-s")    .help("Name of file to save the YAML neural network file to.")
                                     .mode(optionparser::store_value)
                                     .default_value(std::string("neural_net" + timestamp() + ".yaml"));
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     p.add_option("--learning")      .help("Pass a learning rate.")
                                     .mode(optionparser::store_value)
                                     .default_value(0.1);
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     p.add_option("--momentum")      .help("Pass a momentum value.")
                                     .mode(optionparser::store_value)
                                     .default_value(0.5);
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     p.add_option("--regularize")    .help("Pass an l2 norm regularizer.")
                                     .mode(optionparser::store_value)
                                     .default_value(0.00001);
@@ -43,10 +43,10 @@ int main(int argc, char const *argv[])
     p.add_option("--batch")         .help("Mini-batch size.")
                                     .mode(optionparser::store_value)
                                     .default_value(10);
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     p.add_option("--load")          .help("Name of a YAML neural network file to load to begin training")
                                     .mode(optionparser::store_value);
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     std::string config_help = "Pass a configuration file for training specifications instead\n";
     config_help.append(25, ' ');
     config_help += "of over the command line. For help on formatting, pass\n";
@@ -57,16 +57,16 @@ int main(int argc, char const *argv[])
 
     p.add_option("--config", "-c")  .help(config_help)
                                     .mode(optionparser::store_value);
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     p.add_option("-confighelp")     .help("Display info about YAML training config files.");
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     std::string struct_help = "Pass the structure of the neural network. For example, one\n";
     struct_help.append(25, ' ');
     struct_help += "could specify --struct=13 24 23 15 3 [other flags].";
 
     p.add_option("--struct")        .help(struct_help)
                                     .mode(optionparser::store_mult_values);
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     std::string autoencoder_help = "Pretraining using deep autoencoders, if you pass an\n";
     autoencoder_help.append(25, ' ');
     autoencoder_help += "integer n, it will train the first n layers. It defaults to all.";
@@ -74,7 +74,7 @@ int main(int argc, char const *argv[])
     p.add_option("--deepauto", "-d").help(autoencoder_help)
                                     .mode(optionparser::store_value)
                                     .default_value(-1);
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     std::string type_help = "Specify the type of predicive target we are trying to \n";
     type_help.append(25, ' ');
     type_help += "work with. Can be one of 'regress', 'multiclass', or 'binary'.";
@@ -82,31 +82,34 @@ int main(int argc, char const *argv[])
     p.add_option("--type", "-T")    .help(type_help)
                                     .mode(optionparser::store_value)
                                     .default_value("regress");
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     p.add_option("--verbose", "-v") .help("Make the output verbose");
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
+    p.add_option("--weights", "-w") .help("print a file with the first layer weight matrix.")
+                                    .mode(optionparser::store_value);
+    //----------------------------------------------------------------------------
     p.add_option("-start")          .help("Start index for training. (Default = 0)")
                                     .mode(optionparser::store_value)
                                     .default_value(0);
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     p.add_option("-end")            .help("End index for training. (Default, whole tree)")
                                     .mode(optionparser::store_value)
                                     .default_value(-1);  
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     p.add_option("-uepochs")        .help("Number of passes over the Trees for Unsupervised Pretraining(Default = 5)")
                                     .mode(optionparser::store_value)
                                     .default_value(5);
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     p.add_option("-sepochs")        .help("Number of passes over the Trees for Supervised Training(Default = 10)")
                                     .mode(optionparser::store_value)
                                     .default_value(10);
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     std::string prog_string = "Output progress files every (n) epochs. If n isn't passed,\n";
     prog_string.append(25, ' ');
     p.add_option("-prog")           .help(prog_string + "uses default. (Default = 1)")
                                     .mode(optionparser::store_value)
                                     .default_value(1);
-//----------------------------------------------------------------------------
+    //----------------------------------------------------------------------------
     p.add_option("--formula", "-F") .help("Specify Model Formula")
                                     .mode(optionparser::store_value);
 //----------------------------------------------------------------------------
@@ -160,7 +163,6 @@ int main(int argc, char const *argv[])
 
     agile::root::tree_reader TR;
 
-
     for (auto &file : root_files)
     {
        TR.add_file(file, ttree_name);
@@ -168,10 +170,18 @@ int main(int argc, char const *argv[])
 
     TR.set_branches(config_file);
 
+
 //----------------------------------------------------------------------------
+    // agile::dataframe D = TR.get_dataframe(jet_weights, end - start, start, verbose);
     agile::dataframe D = TR.get_dataframe(end - start, start, verbose);
 
+   
+
+
     agile::neural_net net;
+
+    // net.load_config(config_file);
+    
     net.add_data(D);
 
     layer_type net_type;
@@ -182,7 +192,8 @@ int main(int argc, char const *argv[])
     if (passed_target == "regress") net_type = linear;
     else if (passed_target == "multiclass") net_type = softmax;
     else if (passed_target == "binary") net_type = sigmoid;
-    else complain("type of target needs to be one of 'regress', 'multiclass', or 'binary'.");
+    else complain(
+        "type of target needs to be one of 'regress', 'multiclass', or 'binary'.");
     
 //----------------------------------------------------------------------------
 
@@ -225,6 +236,8 @@ int main(int argc, char const *argv[])
     
     net.check(0);
 
+
+
     if (verbose)
     {
         std::cout << "Performing Unsupervised Pretraining...";
@@ -239,12 +252,28 @@ int main(int argc, char const *argv[])
     {
         std::cout << "\nDone.\nSaving to " << save_file << "...";
     }
-    net.to_yaml(save_file);
+    net.to_yaml(save_file, TR.get_var_types());
     if (verbose)
     {
         std::cout << "Done." << std::endl;
     }
 
+    if (p.get_value("weights"))
+    {
+        std::ofstream wght(p.get_value<std::string>("weights"));
+        auto W = net.at(0)->get_weights();
+
+        for (int i = 0; i < W.rows(); ++i)
+        {
+            for (int j = 0; j < W.cols(); ++j)
+            {
+                wght << W(i, j) << " ";
+            }
+            wght << "\n";
+        }
+        wght.close();
+    }
+    
     return 0;
 }
 

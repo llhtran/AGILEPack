@@ -9,18 +9,6 @@
 
 namespace agile
 {
-
-
-// agile::matrix eigenize(const agile::array &A)
-// {
-//     agile::matrix M(A.rows(), A.cols());
-    
-// }
-
-// agile::vector eigenize(const agile::slice &A)
-// {
-
-// }
 //-----------------------------------------------------------------------------
 //  Constructors, assignment, etc.
 //-----------------------------------------------------------------------------
@@ -162,20 +150,6 @@ data_t& dataframe::raw()
     return data;
 }
 
-// dataframe dataframe::subset(std::vector<std::string> names)
-// {
-//     for (auto &row : raw())
-//     {
-//         record_t tmp(names.size());
-//         int ctr = names.size() - 1;
-//         for (auto &name : names)
-//         {
-//             tmp.at(ctr).at(column_names.at(name));
-//         }
-//     }
-//     return 
-// }
-
 
 
 //-----------------------------------------------------------------------------
@@ -207,7 +181,14 @@ std::vector<std::string> dataframe::get_column_names()
 
 std::size_t dataframe::get_column_idx(const std::string &name)
 {
-    return column_names.at(name);
+    try
+    {
+        return column_names.at(name);    
+    }
+    catch(std::out_of_range &e)
+    {
+        throw std::out_of_range("no variable named \'" + name + "\' present.");
+    }   
 }
 //----------------------------------------------------------------------------
 void dataframe::set_column_names(std::vector<std::string> v)
@@ -278,6 +259,11 @@ void dataframe::push_back(record_t &&r)
         std::string wha("vectors to be push_back()'d must be the same size");
         throw dimension_error(wha);
     }
+    // for (auto &entry : r)
+    // {
+    //     std::cout << entry << "   ";
+    // }
+    // std::cout << std::endl;
     data.push_back(std::move(r));
     ++m_rows;
 }
@@ -335,12 +321,6 @@ void dataframe::append(dataframe &&D)
         column_names = std::move(D.column_names);
     }
 }
-
-//-----------------------------------------------------------------------------
-//  iterators
-//-----------------------------------------------------------------------------
-
-    // TO DO
 
 }
 

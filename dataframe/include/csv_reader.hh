@@ -31,21 +31,21 @@ std::istream& operator >> ( std::istream& ins, data_t& data );
 std::string trim(const std::string& str, const std::string& whitespace = " ");
 
 template <class T>
-std::string knit(std::vector<T> v, std::string knitter = ", ")
+inline std::string knit(std::vector<T> v, std::string knitter = ",")
 {
     std::stringstream ss;
-    for (auto &item : v)
+    for (int i = 0; i < v.size() - 1; ++i)
     {
-        ss << item;
-        if(item != v.back()) ss << knitter;
+        ss << v.at(i) << knitter;
     }
+    ss << v.back();
     return std::move(ss.str());
 }
 inline std::string no_spaces(std::string str)
 {
-	std::string::iterator end_pos = std::remove(str.begin(), str.end(), ' ');
-	str.erase(end_pos, str.end());
-	return str;
+    std::string::iterator end_pos = std::remove(str.begin(), str.end(), ' ');
+    str.erase(end_pos, str.end());
+    return str;
 }
 inline std::string no_quotes(std::string str)
 {

@@ -14,6 +14,19 @@
 //-----------------------------------------------------------------------------
 //  A simple layer factory for this and all derived versions
 //-----------------------------------------------------------------------------
+/**
+ * @brief A layer factory class.
+ * @details Usage is simple, one simply has 
+ * 
+ * @code 
+ * layer *l_new = layer_factory<layer>(12, 4);
+ * @endcode
+ * 
+ * @tparam T The type of layer. Can be the class layer and all inheriting types.
+ * @tparam class ...Args Some variadic number of arguments needed 
+ * by the class constructor indicated by T.
+ * @return A pointer to a new instance of T.
+ */
 template <class T, class ...Args>
 typename std::enable_if<!std::is_array<T>::value, T*>::type
 layer_factory(Args&& ...args)
@@ -48,6 +61,21 @@ namespace agile
 //-----------------------------------------------------------------------------
 //  layer class implementation
 //-----------------------------------------------------------------------------
+
+/**
+ * @brief Base class for layers in AGILEPack
+ * @details Provides an  abstraction layer for the underlying operations in a 
+ * neural network. In the basic case, a layer is paramaterized by a matrix
+ * \f$W\f$, a vector \f$b\f$, and an activation function \f$\sigma(\cdot)\f$.
+ * The basic operation takes vectors of one dimensionality, and transforms them 
+ * to a new dimensionality. Formally, consider an input vector 
+ * \f$x\in\mathbb{R}^{D}\f$, and a layer parameterized by \f$W\in\mathbb{R}^{d\times D}\f$
+ * , \f$b\in\mathbb{R}^{d}\f$, and an activation function \f$\sigma\f$. The underlying
+ * operation is 
+ * \f[
+ * y = \sigma(Wx + b)
+ * \f]
+ */
 class layer
 {
 public:
@@ -89,8 +117,12 @@ public:
     void charge(const agile::vector& v); 
     agile::vector fire(); // Fire the charge.
     agile::vector dump_below();
+
     void backpropagate(const agile::vector &v);
+    void backpropagate(const agile::vector &v, double weight);
+
     void update();
+    void update(double weight);
 //-----------------------------------------------------------------------------
 //  Parameter Setting methods
 //-----------------------------------------------------------------------------
@@ -126,6 +158,11 @@ public:
     {
         return m_layer_type;
     }
+
+    agile::matrix get_weights()
+    {
+        return W;
+    }
 //-----------------------------------------------------------------------------
 //  Access for YAML serialization
 //-----------------------------------------------------------------------------
@@ -152,13 +189,24 @@ public:
     }
     virtual void encode(const agile::vector &v, bool noisify = true) 
     {
-        throw std::logic_error("layer::reconstruct() called on class\
+        throw std::logic_error("layer::encode() called on class\
+         layer -- only valid for class autoencoder");
+    }
+
+    virtual void encode(const agile::vector &v, double weight, bool noisify = true) 
+    {
+        throw std::logic_error("layer::encode() called on class\
          layer -- only valid for class autoencoder");
     }
 
     virtual agile::vector get_encoding(const agile::vector &v)
     {
         throw std::logic_error("layer::get_encoding() called on class\
+         layer -- only valid for class autoencoder");
+    }
+    virtual agile::vector decode(const agile::vector &v)
+    {
+        throw std::logic_error("layer::decode() called on class\
          layer -- only valid for class autoencoder");
     }
     
@@ -289,7 +337,7 @@ namespace YAML
             return true;
         }
     };
-}
+} // end ns YAML
 
 
 #endif

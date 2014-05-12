@@ -1,5 +1,9 @@
+//-----------------------------------------------------------------------------
+//  basedefs.cxx:
+//  base definitions for a bunch of stuff
+//  Author: Luke de Oliveira (luke.deoliveira@yale.edu)
+//-----------------------------------------------------------------------------
 #include "agile/include/basedefs.hh"
-
 
 //----------------------------------------------------------------------------
 std::mt19937_64& agile::mersenne_engine() // dumb random number generator
@@ -62,7 +66,19 @@ agile::vector agile::std_to_Eigen(std::vector<numeric> &v)
 //----------------------------------------------------------------------------
 void agile::progress_bar(int percent) 
 {
-    std::string _prog_bar;
+    std::string _prog_bar, this_color;
+    if (percent < 34)
+    {
+        this_color = agile::colors::red();
+    }
+    else if (percent < 67)
+    {
+        this_color = agile::colors::yellow();
+    }
+    else
+    {
+        this_color = agile::colors::green();
+    }
     for(int i = 0; i < 50; i++) 
     {
         if (i < (percent/2)) 
@@ -78,7 +94,8 @@ void agile::progress_bar(int percent)
             _prog_bar.replace(i,1," ");
         }
     }
-    std::cout<< "\r" "[" << _prog_bar << "] ";
+    std::cout << "\r" "[" << this_color << _prog_bar;
+    std::cout << agile::colors::reset() << "] ";
     std::cout.width( 3 );
     std::cout<< percent << "%     " << std::flush;
 }
