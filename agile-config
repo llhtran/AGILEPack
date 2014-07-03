@@ -1,9 +1,12 @@
 #!/bin/bash
 
+GOAL=$1
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+DEFAULT_COMPILER=$(echo "$(make -p -f /dev/null 2>&1 | grep -vi '\$\|\*' | grep -i "cxx")" | cut -f2 -d"="  | tr -d ' ')
 
-GOAL=$1
+CLANG_CHECK=$DEFAULT_COMPILER 2>&1 | grep "clang"
 
 if [[ -z "$GOAL" ]]; then
 	echo "usage: agile-config {compile, link, build} [--root]"
@@ -29,6 +32,12 @@ if [[ "$GOAL" == "build" ]]; then
 		ROOTCFLAGS="`root-config --cflags`"
 	fi
 	COMMAND="-std=c++11 -Wall -fPIC -I$DIR $ROOTCFLAGS -L$DIR/lib -lAGILEPack $ROOTSTUFF"
+fi
+
+if [[ "$GOAL" == "build" ]] || [[ "$GOAL" == "link" ]]; then
+	if [[ -n "$CLANG_CHECK" ]]; then
+		COMMAND+=" -stdlib=libc++"
+	fi
 fi
 
 
