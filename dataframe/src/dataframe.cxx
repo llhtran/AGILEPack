@@ -6,6 +6,8 @@
 
 #include "include/dataframe.hh"
 #include <iostream>
+// including library for math parsing
+#include "include/exprtk.hpp"
 
 namespace agile
 {
@@ -175,6 +177,7 @@ std::vector<std::string> dataframe::get_column_names()
     for (auto &var : column_names)
     {
         v.at(var.second) = agile::trim(var.first);
+        std::cout << "here is " + agile::trim(var.first) << std::endl;
     }
     return std::move(v);
 }
@@ -199,9 +202,13 @@ void dataframe::set_column_names(std::vector<std::string> v)
         throw std::runtime_error("column names already set.");
     }
     std::size_t ctr = 0;
+    std::string temp;
     for (auto &e : v)
     {
-        column_names[agile::trim(e)] = ctr;
+        temp = agile::trim(e);
+        column_names[temp] = ctr;
+        // to be able to access branch names for later parsing
+        variable_names[ctr] = temp;
         ++ctr;
     }
     m_columns_set = true;
@@ -340,7 +347,75 @@ void dataframe::append(dataframe &&D)
     }
 }
 
+//-----------------------------------------------------------------------------
+//  Derived variables - Lien Tran
+//-----------------------------------------------------------------------------
+void dataframe::add_derived_var(const std::string derived_name, const std::string formula)
+{
+    std::cout << "We got to this add new columns, bitches!" << std::endl;
+    column_names[derived_name] = m_cols;
+    m_cols++;
+
+    // this map keeps track of branches that are used in the expression
+    std::map<std::size_t, std::string> used_var;
+
+    // expression type needed to compute mathematical expression to be parsed
+    // part of exprtk library
+    typedef exprtk::expression<double> expression_t;
+
+    // number of used variables in expression
+    int n_var = 0;
+    // parse through all variables names and see which ones
+    // are used in the math expression, save it to map
+    for (int i = 0; i < m_cols - 1; i++)
+    {
+        // if the variable is in formula
+        // add it to the used_var map
+        // variable_names is a map part of dataframe that keeps track of all branches
+        if (formula.find(variable_names[i]))
+        {
+            used_var[n_var] = variable_names[i];
+            ++n_var;
+        }
+    }
+
+    // symbol table needed to set up necessary values for computation
+    // part of exprtk library
+    typedef exprtk::symbol_table<double> symbol_table_t;
+
+    // this is the class to call on for computation
+    expression_t computed_expression;
+    // go through every row of the newly added variable to fill in computed value
+    for (auto &row : data)
+    {
+        symbol_table_t symbol_table;
+        // adds pi, e to table of values
+        symbol_table.add_constants();
+
+        // go through every variable used, fill in its new value, compute,
+        // then add the to column of the new derived variable
+        for (int i = 0; i < n_var; i++)
+        {
+            symbol_table.add_variable(used_var[i], row.at(get_column_idx(used_var[i])));
+        }
+
+        // register table (a pre-computation step)
+        computed_expression.register_symbol_table(symbol_table);
+
+        exprtk::parser<double> parser;
+        parser.compile(formula, computed_expression);
+
+        // ASK LUKE HOW TO BE ABLE TO PRINT THIS?
+        //std::cout << "Computed: " + computed_expression.value() << std::endl; 
+
+        // add value to last column of current row
+        row.push_back(computed_expression.value());
+        std::cout << "Not out of range here YAY" << std::endl;
+    }
 }
+
+}
+
 
 
 dimension_error::dimension_error(const std::string& what_arg)

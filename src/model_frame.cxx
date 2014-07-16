@@ -41,8 +41,11 @@ void model_frame::model_formula(const std::string &formula)
     parse_formula(formula);
 }
 
+
+// this function gets called when neural_net calls model_formula
 void model_frame::generate(bool verbose)
 {
+    // turns the dataframe DF into a matrix T
     agile::matrix T = eigen_spew(DF);
 
     m_X.resize(DF.rows(), inputs.size());
@@ -61,9 +64,9 @@ void model_frame::generate(bool verbose)
 
     int idx = 0, ctr = 0;
     double pct;
-    for (auto &name : inputs)
+    for (auto &name : inputs) // for inputs
     {
-        m_X.col(idx) = T.col(DF.get_column_idx(name));
+        m_X.col(idx) = T.col(DF.get_column_idx(name)); // columns of m_X = columns of T
         ++idx;
         ++ctr;
         if (verbose)
@@ -174,7 +177,7 @@ void model_frame::parse_formula(std::string formula)
 {
     auto pipe = formula.find_first_of("|");
 
-    if (pipe != std::string::npos)
+    if (pipe != std::string::npos) // is string != no matches
     {
         weighting_variable = agile::no_spaces(formula.substr(pipe + 1));
         formula = formula.substr(0, pipe);
@@ -184,7 +187,7 @@ void model_frame::parse_formula(std::string formula)
     formula = agile::no_spaces(formula);
     bool parsing = true, wildcard = false;
     auto tilde = formula.find_first_of("~");
-    if (tilde != formula.find_last_of("~"))
+    if (tilde != formula.find_last_of("~")) // if tilde is not found
     {
         std::string e("can't specify multiple \'is a function of\'");
         e.append(" operators (uses of \'~\') in one formula.");
@@ -192,14 +195,14 @@ void model_frame::parse_formula(std::string formula)
     }
 
     auto wildcard_find = formula.find_first_of("*");
-    if (wildcard_find != formula.find_last_of("*"))
+    if (wildcard_find != formula.find_last_of("*")) // if asterisk is not found
     {
         std::string e("can't specify multiple \'include all defined");
         e.append(" variables\' operators (uses of \'*\') in one formula.");
         throw agile::parsing_error(e);
     }
     
-    if (wildcard_find != std::string::npos)
+    if (wildcard_find != std::string::npos) // if wildcard is found
     {
         wildcard = true;
         std::string::iterator end_pos = std::remove(

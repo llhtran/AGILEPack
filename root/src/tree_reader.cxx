@@ -63,6 +63,9 @@ void tree_reader::add_file(std::string filename, std::string tree_name)
     m_size = m_smart_chain->GetEntries();
 }
 //----------------------------------------------------------------------------
+// set_branch
+// numeric_type is of type enum defined in .hh
+//----------------------------------------------------------------------------
 void tree_reader::set_branch(std::string branch_name, numeric_type type)
 {
     if (branch_name == "")
@@ -73,8 +76,13 @@ void tree_reader::set_branch(std::string branch_name, numeric_type type)
     {
         throw std::runtime_error("no files added to smart_chain.");
     }
+    // storage is a vector of unique_ptr<number_container>
+    // where number_container is just an instance of numeric_handler
     storage.emplace_back(new number_container);
 
+    std::cout << "First: " + branch_name << std::endl;
+
+    // declaring new instance new_trait
     var_traits new_trait(storage.size() - 1, type);
     traits[branch_name] = new_trait;
 
@@ -84,6 +92,8 @@ void tree_reader::set_branch(std::string branch_name, numeric_type type)
     {
         case single_precision:
         {
+            // set_branch from smart_chain is declared in 
+            // smart_chain.hh. Uses SetBranchAddressPrivate to interact with ROOT
             m_smart_chain->set_branch(branch_name, 
                 &storage.back()->set_address<float>());
 
@@ -213,11 +223,14 @@ void tree_reader::create_constraint(const std::string &branch_name,
     m_constraint_present = true;
 }
 //----------------------------------------------------------------------------
+// Set_branches is only called when there is config file involved
+//----------------------------------------------------------------------------
 void tree_reader::set_branches(const std::string &yamlfile)
 {
     YAML::Node tmp = YAML::LoadFile(yamlfile);
     try
-    {
+    {   // detects a node called branches
+        // ideally make a node derived and parse it like this too
         YAML::Node config = tmp["branches"];
         std::map<std::string, std::string> vars = 
         config.as<std::map<std::string, std::string>>();
@@ -225,6 +238,8 @@ void tree_reader::set_branches(const std::string &yamlfile)
         for (auto &entry : vars)
         {
             auto type = entry.second;
+            // 
+            // std::cout << "First: " + entry.first + "   Second: " + entry.second << std::endl;
             if (type == "double")
             {
                 set_branch(entry.first, agile::root::double_precision);
@@ -249,6 +264,71 @@ void tree_reader::set_branches(const std::string &yamlfile)
         throw std::runtime_error(
             "configuration files must have a map entitled 'branches'");
     }
+/*
+    // Lien's code begins here
+    try
+    {   
+        // new map for derived variables
+        // derived var should be in following form:
+        // derived_var "mathematical expression" <- with quotes
+        YAML::Node config_derived = tmp["derived"];
+        std::map<std::string, std::string> derived_vars = 
+        config_derived.as<std::map<std::string, std::string>>();
+
+        // typedefing the type used to store mathematical expression
+        // after conversion from plain string
+        typedef exprtk::expression<T> expression_t;
+
+        // for every variable derived from others
+        for (auto &entry : derived_vars)
+        {
+            // get string that is math expression
+            std::string math_string = entry.second;
+
+            // initializing symbol table needed to convert expression
+            exprtk::symbol_table<T> symbol_table;
+
+            // adding constants pi, e, etc to symbol table 
+            symbol_table.add_constants();
+
+            // for every original variable set in branches
+            for (auto &org_vars : vars)
+            {
+                // declaring a map to hold variables for every dependent variable
+                std::map<std::string, std::auto> dep_var;
+                // if the variable is found in the expression
+                if (math_expression.find(org_vars.first))
+                {
+                    // ATTENTION HERE - TO DO
+                    // figure out how to declare new internal variable 
+                    // for exprtk system_table for that variable
+
+
+                }
+            }
+
+            // setting up for parsing
+            expression_t converted_expression;
+            converted_expression.register_symbol_table(system_table);
+
+            // parser that parses expression, and parse
+            exprtk::parser<T> parser;
+            parser.compile(math_string, converted_expression);
+
+            // now should be able to get result from converted_expression
+            // if all variables have numerical values ie. set eta = 3
+            // by calling result = converted_expression.value();
+            // every call recomputes the expression, 
+            // which is useful if variable values are changed
+
+            // but the problem is need to get data and THEN do computation...
+            // that step is not executed here...
+
+        }
+    }
+    catch(YAML::BadConversion &e){} 
+    // end of Lien's code
+*/
     try
     {   
         YAML::Node binning = tmp["binning"];
@@ -341,7 +421,7 @@ std::map<std::string, std::vector<double>> tree_reader::get_constraints()
     }
     return m_constraint_strategy;
 }
-//----------------------------------------------------------------------------
+//------------------------------------------------a----------------------------
 agile::dataframe tree_reader::get_dataframe(int entries, int start, 
     bool verbose)
 {
@@ -363,6 +443,9 @@ agile::dataframe tree_reader::get_dataframe(int entries, int start,
     double pct;
     agile::dataframe D;
 
+    // all branch names have been pushed onto feature_names
+    // in the process of calling set_branch
+    // feature_names is a private vector of strings defined in the headerfile for tree_reader
     auto all_names = feature_names;
     if (m_binned_present)
     {
@@ -371,6 +454,9 @@ agile::dataframe tree_reader::get_dataframe(int entries, int start,
             all_names.push_back("categ_" + entry);
         }
     }
+
+    // a function in dataframe used to map each name
+    // to a size_t index from 0 -> # of entries
     D.set_column_names(all_names);
     for (curr_entry = start; curr_entry < stop; ++curr_entry)
     {
@@ -515,7 +601,14 @@ std::vector<std::string> tree_reader::get_ordered_branch_names()
     }
     return all_names;
 }
-//----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+//  Derived variables - Lien Tran
+//-----------------------------------------------------------------------------
+void tree_reader::add_derived_var(agile::dataframe &D, const std::string derived_name, const std::string formula)
+{
+    D.add_derived_var(derived_name, formula);
+}
 
 
 }

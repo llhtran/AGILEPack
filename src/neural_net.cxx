@@ -81,6 +81,7 @@ neural_net::~neural_net()
 //---------------------------------------------------------------------------
 void neural_net::add_data(const agile::dataframe &D)
 {
+    // m_model is model_frame part of neural_net classt
     m_model.add_dataset(D);
 }
 void neural_net::add_data(agile::dataframe &&D)

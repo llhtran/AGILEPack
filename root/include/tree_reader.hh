@@ -104,6 +104,11 @@ public:
         const std::vector<std::string> &names);
 
 //-----------------------------------------------------------------------------
+//  Derived variables - Lien Tran
+//-----------------------------------------------------------------------------
+void add_derived_var(agile::dataframe &D, const std::string derived_name, const std::string formula);
+
+//-----------------------------------------------------------------------------
 //  Information
 //-----------------------------------------------------------------------------
 
@@ -195,14 +200,6 @@ agile::dataframe tree_reader::get_dataframe(T &weights, int entries, int start,
     }
     return std::move(D);
 }
-
-
-
-
-
-
-
-
 
 } // end ns root
 } // end ns agile

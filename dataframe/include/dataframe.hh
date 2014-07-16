@@ -82,11 +82,21 @@ public:
 
     void scale();
 
+//-----------------------------------------------------------------------------
+//  Derived variables - Lien Tran
+//-----------------------------------------------------------------------------
+    void add_derived_var(const std::string derived_name, const std::string formula);
+
 private:
 //-----------------------------------------------------------------------------
 //  Private data fields
 //-----------------------------------------------------------------------------
     std::map<std::string, std::size_t> column_names;
+    
+    // map of vairables names to keep name indexes for access by index later
+    // for math parsing
+    std::map<std::size_t, std::string> variable_names;
+    
     data_t data;
     
     bool m_columns_set, m_scaled;
