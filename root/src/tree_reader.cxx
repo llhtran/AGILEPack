@@ -80,8 +80,6 @@ void tree_reader::set_branch(std::string branch_name, numeric_type type)
     // where number_container is just an instance of numeric_handler
     storage.emplace_back(new number_container);
 
-    std::cout << "First: " + branch_name << std::endl;
-
     // declaring new instance new_trait
     var_traits new_trait(storage.size() - 1, type);
     traits[branch_name] = new_trait;
@@ -441,7 +439,7 @@ agile::dataframe tree_reader::get_dataframe(int entries, int start,
 
     int curr_entry = 0;
     double pct;
-    agile::dataframe D;
+    //agile::dataframe D;
 
     // all branch names have been pushed onto feature_names
     // in the process of calling set_branch
@@ -457,7 +455,7 @@ agile::dataframe tree_reader::get_dataframe(int entries, int start,
 
     // a function in dataframe used to map each name
     // to a size_t index from 0 -> # of entries
-    D.set_column_names(all_names);
+    tree_D.set_column_names(all_names);
     for (curr_entry = start; curr_entry < stop; ++curr_entry)
     {
         if (verbose)
@@ -470,11 +468,20 @@ agile::dataframe tree_reader::get_dataframe(int entries, int start,
 
         if (entry_in_range())
         {
-            D.push_back(std::move(at((unsigned int)curr_entry)));
+            tree_D.push_back(std::move(at((unsigned int)curr_entry)));
         }
         
     }
-    return std::move(D);
+
+    // adding derived variables here
+    for (int i = 0; i < n_derived; i++) 
+    {
+        // add derived variable to dataframe
+        tree_D.add_derived_var(derived_names[i], derived_var_map[derived_names[i]]);
+    }
+
+    // return std::move(D);
+    return tree_D;
 }
 
 //-----------------------------------------------------------------------------
@@ -529,6 +536,20 @@ double tree_reader::operator()(const unsigned int &idx, std::string col_name)
     }
 }
 
+// Lien's code, equivalent of the above operator() but enabling derived variables
+double tree_reader::predict_map(const unsigned int &idx, std::string col_name)
+{
+    try
+    {
+        return (tree_D.at(idx)).at(tree_D.get_column_idx(col_name));
+    }
+    catch (std::out_of_range &e)
+    {
+        //std::cout << "This is Lien's code failing..." << std::endl;
+        return 0;
+    }
+}
+
 std::map<std::string, double> tree_reader::operator()(const unsigned int &idx, 
     const std::vector<std::string> &names)
 {
@@ -553,6 +574,25 @@ std::map<std::string, double> tree_reader::operator()(const unsigned int &idx,
     }
     return std::move(map);
 
+}
+
+// Lien's code, equivalent of the above operator() but enabling derived variables
+std::map<std::string, double> tree_reader::predict_map(const unsigned int &idx, 
+    const std::vector<std::string> &names)
+{
+    std::map<std::string, double> map;
+    for (auto &name : names)
+    {
+        try
+        {
+            map[name] = (tree_D.at(idx)).at(tree_D.get_column_idx(name));
+        }
+        catch (std::out_of_range &e)
+        {
+            //std::cout << "This is Lien's code failing..." << std::endl;
+        }
+    }
+    return std::move(map);
 }
 //----------------------------------------------------------------------------
 std::map<std::string, double> tree_reader::at(const unsigned int &idx, 
@@ -605,9 +645,11 @@ std::vector<std::string> tree_reader::get_ordered_branch_names()
 //-----------------------------------------------------------------------------
 //  Derived variables - Lien Tran
 //-----------------------------------------------------------------------------
-void tree_reader::add_derived_var(agile::dataframe &D, const std::string derived_name, const std::string formula)
+void tree_reader::add_derived_var(const std::string &derived_name, const std::string &formula)
 {
-    D.add_derived_var(derived_name, formula);
+    derived_names.push_back(derived_name);
+    n_derived = derived_names.size();
+    derived_var_map[derived_name] = formula;
 }
 
 

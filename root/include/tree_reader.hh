@@ -98,15 +98,20 @@ public:
     std::vector<double> operator[](const unsigned int &idx);
     std::vector<double> operator()(const unsigned int &idx);
     double operator()(const unsigned int &idx, std::string col_name);
+    // Lien's operator() version that allows for derived variables
+    double predict_map(const unsigned int &idx, std::string col_name);
     std::map<std::string, double> at(const unsigned int &idx, 
         const std::vector<std::string> &names);
     std::map<std::string, double> operator()(const unsigned int &idx, 
+        const std::vector<std::string> &names);
+    // Lien's operator() version that allows for derived variables
+    std::map<std::string, double> predict_map(const unsigned int &idx, 
         const std::vector<std::string> &names);
 
 //-----------------------------------------------------------------------------
 //  Derived variables - Lien Tran
 //-----------------------------------------------------------------------------
-void add_derived_var(agile::dataframe &D, const std::string derived_name, const std::string formula);
+    void add_derived_var(const std::string &derived_name, const std::string &formula);
 
 //-----------------------------------------------------------------------------
 //  Information
@@ -126,6 +131,10 @@ private:
     typedef __INTERNAL::numeric_handler number_container;
     std::vector<std::unique_ptr<number_container>> storage;
 
+    // map for derived variables and their formulas
+    std::vector<std::string> derived_names;
+    std::size_t n_derived;
+    std::map<std::string, std::string> derived_var_map;
 
     bool m_binned_present, m_constraint_present;
     std::vector<std::string> feature_names, binned_names, constraint_names;
@@ -135,6 +144,8 @@ private:
 
     std::map<std::string, agile::root::binner> m_constraint_vars;
     std::map<std::string, std::vector<double>> m_constraint_strategy;
+
+    agile::dataframe tree_D;
 
 };
 

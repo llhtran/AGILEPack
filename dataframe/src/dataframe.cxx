@@ -177,7 +177,7 @@ std::vector<std::string> dataframe::get_column_names()
     for (auto &var : column_names)
     {
         v.at(var.second) = agile::trim(var.first);
-        std::cout << "here is " + agile::trim(var.first) << std::endl;
+        //std::cout << "here is " + agile::trim(var.first) << std::endl;
     }
     return std::move(v);
 }
@@ -356,6 +356,8 @@ void dataframe::add_derived_var(const std::string derived_name, const std::strin
     column_names[derived_name] = m_cols;
     m_cols++;
 
+    std::cout << "This is the formula " + formula << std::endl;
+
     // this map keeps track of branches that are used in the expression
     std::map<std::size_t, std::string> used_var;
 
@@ -372,8 +374,9 @@ void dataframe::add_derived_var(const std::string derived_name, const std::strin
         // if the variable is in formula
         // add it to the used_var map
         // variable_names is a map part of dataframe that keeps track of all branches
-        if (formula.find(variable_names[i]))
+        if ((formula.find(variable_names[i])) != std::string::npos)
         {
+            std::cout << "This variable is used in expression: " + variable_names[i] << std::endl;
             used_var[n_var] = variable_names[i];
             ++n_var;
         }
@@ -405,12 +408,11 @@ void dataframe::add_derived_var(const std::string derived_name, const std::strin
         exprtk::parser<double> parser;
         parser.compile(formula, computed_expression);
 
-        // ASK LUKE HOW TO BE ABLE TO PRINT THIS?
-        //std::cout << "Computed: " + computed_expression.value() << std::endl; 
+        //double y = computed_expression;
+        //std::cout << "Computed: " + std::to_string(y) << std::endl; 
 
         // add value to last column of current row
         row.push_back(computed_expression.value());
-        std::cout << "Not out of range here YAY" << std::endl;
     }
 }
 
