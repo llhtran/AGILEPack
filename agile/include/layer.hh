@@ -236,8 +236,8 @@ protected:
     agile::matrix W,       // current weight matrix
                   W_old,   // previous weight matrix
                   W_change;// the change to make to W
-
-                  //deriv_jacob // /// // 
+                  jacobian;// the Jacobian penalty, 
+                           // used only for contractive autoencoder functions
 
     agile::vector b,            // bias vector
                   b_old,        // previous bias vector

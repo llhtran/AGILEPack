@@ -266,7 +266,8 @@ agile::vector layer::fire()
     }   
 }
 //----------------------------------------------------------------------------
-void layer::backpropagate(const agile::vector &v)
+void layer::backpropagate(const agile::vector &v) 
+// the vector v here is the error from reconstruct -  original v
 {
     // delta is an agile vector - intermediate derivative
     // QUESTION: What is noalias?
