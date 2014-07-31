@@ -120,14 +120,24 @@ public:
     agile::vector fire(); // Fire the charge.
     agile::vector dump_below();
 
+
     void backpropagate(const agile::vector &v);
     void backpropagate(const agile::vector &v, double weight);
 
+    // NEEDS WORK: Add backpropagate for contractive
+
     void update();
     void update(double weight);
+
+    // NEEDS WORK: Add update for contractive
+
+
 //-----------------------------------------------------------------------------
 //  Parameter Setting methods
 //-----------------------------------------------------------------------------
+    
+    // NEEDS WORK: Add set_batch_size for contractive (since uses update)
+
     virtual void set_batch_size(int size)
     {
         if (ctr > 0)

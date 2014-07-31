@@ -4,6 +4,7 @@
 //  Author: Luke de Oliveira (luke.deoliveira@yale.edu)
 //-----------------------------------------------------------------------------
 
+// QUESTION: What is this for?
 #ifndef AUTOENCODER_HH
 #define AUTOENCODER_HH 
 
@@ -115,6 +116,7 @@ protected:
 //-----------------------------------------------------------------------------
     layer decoder; // decoder layer
     agile::types::paradigm m_paradigm;
+    
 private:
     virtual layer* clone()
     {
