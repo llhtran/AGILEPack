@@ -5,6 +5,9 @@
 #include "dataframe/dataframe_core.hh"
 #include "model_frame.hh"
 
+// What does this mean? 
+// Where is this neural_net class? 
+// Why are there two declarations?
 namespace agile
 {
     class neural_net;
@@ -17,12 +20,15 @@ namespace YAML
 namespace agile
 {
 //----------------------------------------------------------------------------
+// neural_net inherits from the public parts of architecture class
 class neural_net : public architecture
 {
 public:
     neural_net(int num_layers = 0);
     neural_net(std::initializer_list<int> il, problem_type type = regress);
     neural_net(const std::vector<int> &v, problem_type type = regress);
+    
+    // arch is a neural net!
     neural_net(const neural_net &arch);
     ~neural_net();
 

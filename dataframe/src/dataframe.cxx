@@ -352,7 +352,6 @@ void dataframe::append(dataframe &&D)
 //-----------------------------------------------------------------------------
 void dataframe::add_derived_var(const std::string derived_name, const std::string formula)
 {
-    std::cout << "We got to this add new columns, bitches!" << std::endl;
     column_names[derived_name] = m_cols;
     m_cols++;
 

@@ -123,6 +123,7 @@ void autoencoder::reset_weights(numeric bound)
 //----------------------------------------------------------------------------
 void autoencoder::encode(const agile::vector &v, bool noisify)
 {
+    // here is the error function!
     agile::vector error = reconstruct(v, noisify) - v;  
     decoder.backpropagate(error);
     backpropagate(decoder.dump_below());
@@ -145,6 +146,7 @@ agile::vector autoencoder::reconstruct(const agile::vector &v, bool noisify)
     {
         this->charge(v);
     }
+    // decoder is a layer class
     decoder.charge(this->fire());
     return decoder.fire();
 }

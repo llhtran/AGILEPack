@@ -120,6 +120,7 @@ protected:
 //-----------------------------------------------------------------------------
     unsigned int n_layers;    // number of network layers
     agile::layer_stack stack; // the stack of layers
+                              // basically vector of unique ptrs to layer class
 };
 
 template <class T>
@@ -158,6 +159,7 @@ template <class T>
 void architecture::emplace_back(T *L)
 {
     ++n_layers;
+    // unsafe cast?
     stack.emplace_back(std::move((T*)(L)));
 }
 

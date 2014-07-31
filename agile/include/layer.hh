@@ -54,6 +54,7 @@ namespace YAML
     struct convert<architecture>;
 }
 
+// QUESTION: Where does this class come from, exactly? What is this declaration for?
 namespace agile
 {
     class neural_net;
@@ -212,6 +213,8 @@ public:
     }
     
 protected:
+    // to do / think about more since im out of control
+    // agile::matrix get_jacobian_gradient(agile::vector v);
 //-----------------------------------------------------------------------------
 //  Protected Members
 //-----------------------------------------------------------------------------
@@ -223,6 +226,8 @@ protected:
     agile::matrix W,       // current weight matrix
                   W_old,   // previous weight matrix
                   W_change;// the change to make to W
+
+                  //deriv_jacob // /// // 
 
     agile::vector b,            // bias vector
                   b_old,        // previous bias vector

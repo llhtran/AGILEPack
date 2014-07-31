@@ -239,14 +239,23 @@ void layer::resize_output(int n_outputs)
     reset_weights(sqrt((numeric)6 / (numeric)(m_inputs + m_outputs)));
 }
 //----------------------------------------------------------------------------
+// stores the m_out
 void layer::charge(const agile::vector& v)
 {   
+    // m_in is input to the layer
     m_in = v;
+    // m_out is a agile::vector belonging to the layer class
+    // it is the untransformed layer output
+    // QUESTION: What is untransformed layer output? preactivation output
+    // QUESTION: What is an agile::vector, exactly?
+    // What is the agile::vector.noalias() function?
     m_out.noalias() = W * v + b;
 }
 //----------------------------------------------------------------------------
+// applies the sigmoid
 agile::vector layer::fire()
 {
+    // QUESTION: When is this m_layer_type specified?
     switch(m_layer_type)
     {
         case sigmoid: return agile::functions::exp_sigmoid(m_out);
@@ -259,6 +268,11 @@ agile::vector layer::fire()
 //----------------------------------------------------------------------------
 void layer::backpropagate(const agile::vector &v)
 {
+    // delta is an agile vector - intermediate derivative
+    // QUESTION: What is noalias?
+    // doesn't make copy for operation
+    // QUESTION: What is array()?
+    // eigen thing: array is for elementwise multiplication
     delta.noalias() = v;
 
     if (m_layer_type == sigmoid)
@@ -306,6 +320,9 @@ void layer::backpropagate(const agile::vector &v, double weight)
     W_change += delta * m_in.transpose(); 
     b_change += delta;
 
+
+    // jacob_grad += get_jacobian_gradient(v);
+
     ++ctr;
     if (ctr >= m_batch_size) // if we need to start a new batch
     {   
@@ -344,6 +361,7 @@ void layer::update(double weight)
 {
     W_change /= m_batch_size;
     W_old = momentum * W_old - learning * (W_change + regularizer * W);
+    // W_old = momentum * W_old - learning * (W_change + regularizer * W + (jacobian_penalty / m_batch_size) * jacob_grad);
     W += weight * W_old;
     
     b_change /= m_batch_size;
@@ -352,6 +370,7 @@ void layer::update(double weight)
 
     b_change.fill(0.00);
     W_change.fill(0.00);
+    //jacob_grad.fill(0.00);
 }
 //----------------------------------------------------------------------------
 YAML::Emitter& operator << (YAML::Emitter& out, const layer &L) 

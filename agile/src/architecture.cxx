@@ -148,6 +148,7 @@ agile::vector architecture::predict(const agile::vector &v)
     return stack.at(n_layers - 1)->fire();
 }
 //----------------------------------------------------------------------------
+// correct() functions are for supervised training!
 void architecture::correct(const agile::vector &in, 
     const agile::vector &target)
 {
@@ -163,6 +164,7 @@ void architecture::correct(const agile::vector &in,
     }
 }
 //----------------------------------------------------------------------------
+// correct() functions are for supervised training!
 void architecture::correct(const agile::vector &in, 
     const agile::vector &target, double weight)
 {
@@ -178,6 +180,8 @@ void architecture::correct(const agile::vector &in,
     }
 }
 //----------------------------------------------------------------------------
+// encode() functions are for unsupervised training!
+// QUESTION
 void architecture::encode(const agile::vector &in, const unsigned int &which, 
     bool noisify)
 {
@@ -196,9 +200,11 @@ void architecture::encode(const agile::vector &in, const unsigned int &which,
     stack.at(which)->encode(v, noisify);
 }
 //----------------------------------------------------------------------------
+// encode() functions are for unsupervised training!
 void architecture::encode(const agile::vector &in, const unsigned int &which, 
     double weight, bool noisify)
 {
+    // which is the epoch #
     if (which == 0)
     {
         stack.at(0)->encode(in, weight, noisify);

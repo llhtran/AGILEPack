@@ -481,6 +481,7 @@ agile::dataframe tree_reader::get_dataframe(int entries, int start,
     }
 
     // return std::move(D);
+    // this NEEDS WORK. Currently very memory inefficient without std::move
     return tree_D;
 }
 
@@ -545,8 +546,11 @@ double tree_reader::predict_map(const unsigned int &idx, std::string col_name)
     }
     catch (std::out_of_range &e)
     {
-        //std::cout << "This is Lien's code failing..." << std::endl;
-        return 0;
+        std::string issue = "Variable name ";
+        issue += col_name;
+
+        issue += " not found.";
+        throw std::out_of_range(issue);
     }
 }
 
@@ -589,7 +593,11 @@ std::map<std::string, double> tree_reader::predict_map(const unsigned int &idx,
         }
         catch (std::out_of_range &e)
         {
-            //std::cout << "This is Lien's code failing..." << std::endl;
+            std::string issue = "Variable name ";
+            issue += name;
+
+            issue += " not found.";
+            throw std::out_of_range(issue);
         }
     }
     return std::move(map);
@@ -649,7 +657,7 @@ void tree_reader::add_derived_var(const std::string &derived_name, const std::st
 {
     derived_names.push_back(derived_name);
     n_derived = derived_names.size();
-    derived_var_map[derived_name] = formula;
+    derived_var_map[derived_name] = agile::no_spaces(formula);
 }
 
 

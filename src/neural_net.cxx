@@ -215,15 +215,6 @@ void neural_net::to_yaml(const std::string &filename,
 
 //     YAML::Node parameters = configuration["parameters"];
 
-
-
-
-
-
-
-
-
-
 //     if (parameters["structure"])
 //     {
 //         stack.clear();
@@ -321,9 +312,17 @@ void neural_net::internal_train_unsupervised_weighted(
     {
         check(tantrum);
     }
+
+    // QUESTION: What is ctr? pct?
     int idx = 0, ctr = 0;
     int total = epochs * n_training;
     double pct;
+
+    // get_paradigm is a function of the layer class
+    // which returns the m_paradigm of the layer
+    // m_paradigm is a structure declared is the layer class of type paradigm
+    // paradigm's definition is in basedefs
+    // it is an enum characterizing the layer / node type (I think)
     while(stack.at(idx)->get_paradigm() == agile::types::Autoencoder)
     {
         if (verbose)
@@ -332,6 +331,8 @@ void neural_net::internal_train_unsupervised_weighted(
         }
         for (int e = 0; e < epochs; ++e)
         {
+            // n_ training = number of rows in X
+            // which is basically number of events to be trained on
             for (int i = 0; i < n_training; ++i)
             {
                 if (verbose && (ctr % 2 == 0))
@@ -339,6 +340,12 @@ void neural_net::internal_train_unsupervised_weighted(
                     pct = (double)ctr / (double)total;
                     agile::progress_bar(pct * 100);
                 }
+                // encode here is a function inherited from the architecture class
+                // pattern_weights is a matrix (though only one-dimensional)
+                // that is the m_weighting VECTOR from model_frame
+                // pattern_weights(i) is simply a double
+                // QUESTION: What are weights? weighted training vs normal?
+                // (weighted will be ignored for now)
                 encode(X.row(i), idx, pattern_weights(i), denoising);
                 ++ctr;
             }
@@ -408,6 +415,11 @@ void neural_net::internal_train_unsupervised(const unsigned int &epochs,
                     agile::progress_bar(pct * 100);
 
                 }
+
+                // The NOT WEIGHTED VERSION
+                // 
+                // denoising is ALWAYS TRUE once passed into encode
+                // QUESTION: What's the point of it then?
                 encode(X.row(i), idx, denoising);
                 ++ctr;
             }
@@ -452,10 +464,22 @@ void neural_net::internal_train_supervised(const unsigned int &epochs,
 }
 
 //----------------------------------------------------------------------------
+// This checking function makes sure that the number
+// of inputs and outputs match up, otherwise fix them before continuing
 void neural_net::check(bool tantrum)
 {
+    // if there are layers left (not sure what m_checked is, but usually default is false)
     if ((stack.size() > 0) && (!m_checked))
     {
+        // X is the input matrix
+        // stack is arch.stack, where arch is a neural net
+        // neural net inherits from architecture class,
+        // which contains a public structure called stack
+        // stack is simply a layer_stack in agile
+        // layer_stack is a vector os unique_ptrs to layers (a class)
+        // stack.front refers to first element
+        // num_inputs is a function in layer class which returns m_inputs aka 
+        // number of inputs to the layer
         if (X.cols() != stack.front()->num_inputs())
         {
             if (tantrum)
@@ -470,6 +494,10 @@ void neural_net::check(bool tantrum)
             stack.front()->resize_input(X.cols());
 
         }
+
+        // if error, fix number of inputs
+        // then continue
+
         for (int l = 1; l < (stack.size() - 1); ++l)
         {
             if (stack.at(l - 1)->num_outputs() != stack.at(l)->num_inputs())
