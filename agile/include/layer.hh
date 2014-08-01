@@ -124,20 +124,15 @@ public:
     void backpropagate(const agile::vector &v);
     void backpropagate(const agile::vector &v, double weight);
 
-    // NEEDS WORK: Add backpropagate for contractive
+    // gets teh Jacobian matrix
+    void get_jacobian(const agile::vector &v);
 
     void update();
     void update(double weight);
 
-    // NEEDS WORK: Add update for contractive
-
-
 //-----------------------------------------------------------------------------
 //  Parameter Setting methods
 //-----------------------------------------------------------------------------
-    
-    // NEEDS WORK: Add set_batch_size for contractive (since uses update)
-
     virtual void set_batch_size(int size)
     {
         if (ctr > 0)
@@ -236,8 +231,8 @@ protected:
     agile::matrix W,       // current weight matrix
                   W_old,   // previous weight matrix
                   W_change;// the change to make to W
-                  jacobian;// the Jacobian penalty, 
-                           // used only for contractive autoencoder functions
+                  Jacobian;// the Jacobian penalty, 
+                           // used for contractive autoencoder functions
 
     agile::vector b,            // bias vector
                   b_old,        // previous bias vector
@@ -250,6 +245,7 @@ protected:
     numeric learning,    // learning rate
             momentum,    // momentum (gradient smoothing) parameter
             regularizer; // l2 regularization scalar
+            jacobian_penalty; // jacobian_penalty
 
     layer_type m_layer_type; // what type of layer (linear, sigmoid, etc.)
     agile::types::paradigm m_paradigm; //type of pre-training
