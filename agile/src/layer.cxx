@@ -90,7 +90,9 @@ regularizer(std::move(L.regularizer)),
 jacobian_penalty(std::move(L.jacobian_penalty)),
 
 m_layer_type(std::move(L.m_layer_type)),
-m_paradigm(std::move(L.m_paradigm))
+m_paradigm(std::move(L.m_paradigm)),
+
+contractive(false)
 
 {
     ctr = 0;
@@ -119,7 +121,9 @@ regularizer(L->regularizer),
 jacobian_penalty(L->jacobian_penalty),
 
 m_layer_type(L->m_layer_type),
-m_paradigm(L->m_paradigm)
+m_paradigm(L->m_paradigm),
+
+contractive(false)
 
 {
     ctr = 0;
@@ -151,6 +155,8 @@ layer& layer::operator= (const layer &L)
     m_layer_type = (L.m_layer_type);
     m_paradigm = (L.m_paradigm);
 
+    contractive = (L.contractive);
+
     return *this;
 }
 //----------------------------------------------------------------------------
@@ -180,6 +186,8 @@ layer& layer::operator= (layer &&L)
     m_layer_type = std::move(L.m_layer_type);
     m_paradigm = std::move(L.m_paradigm);
 
+    contractive = std::move(L.contractive);
+
     return *this;
 }
 //----------------------------------------------------------------------------
@@ -203,6 +211,7 @@ void layer::construct(int n_inputs, int n_outputs, layer_type type)
     m_in.resize(n_inputs, Eigen::NoChange);
     m_layer_type = type;
     m_paradigm = agile::types::Basic;
+    contractive = false;
 
     reset_weights(sqrt((numeric)6 / (numeric)(n_inputs + n_outputs)));
 }
@@ -308,6 +317,8 @@ void layer::backpropagate(const agile::vector &v)
     W_change += delta * m_in.transpose(); 
     b_change += delta;
 
+    Jacobian += get_jacobian();
+
     ++ctr;
     if (ctr >= m_batch_size) // if we need to start a new batch
     {   
@@ -337,8 +348,7 @@ void layer::backpropagate(const agile::vector &v, double weight)
     W_change += delta * m_in.transpose(); 
     b_change += delta;
 
-
-    jacob_grad += get_jacobian(v);
+    Jacobian += get_jacobian();
 
     ++ctr;
     if (ctr >= m_batch_size) // if we need to start a new batch
@@ -360,20 +370,53 @@ agile::vector layer::dump_below()
     return m_dump_below;
 }
 //----------------------------------------------------------------------------
-void layer::get_jacobian(const agile::vector &v)
+agile::matrix layer::get_jacobian()
 {
-    // v here is the error function
-    
+    if (!contractive)
+    {
+        agile::matrix temp(m_inputs, m_outputs);
+        temp.fill(0.00);
+        return temp;
+    }
+    else 
+    {
+        charge_jacobian();
+        agile::vector temp = fire_jacobian();
+        temp = agile::functions::exp_sigmoid_deriv(temp);
+        return temp.array() * temp.array();
+    }
+}
+//----------------------------------------------------------------------------
+void layer::charge_jacobian()
+{
+    // this is simply storing the expression in the vector m_out
+    m_out.noalias() = W * m_in + b;
+}
+//----------------------------------------------------------------------------
+agile::vector layer::fire_jacobian()
+{
+    switch(m_layer_type)
+    {
+        case sigmoid: return agile::functions::exp_sigmoid(m_out);
+        case softmax: return agile::functions::softmax(m_out);
+        case linear: return m_out;
+        case rectified: return agile::functions::rect_lin_unit(m_out);
+        default: throw std::domain_error("layer type not recongized.");
+    }   
 }
 //----------------------------------------------------------------------------
 void layer::update()
 {
     W_change /= m_batch_size;
-    W_old = momentum * W_old - learning * (W_change + regularizer * W);
+    // W_old = momentum * W_old - learning * (W_change + regularizer * W);
+    W_old = momentum * W_old - learning * (W_change + regularizer * W + \
+    jacobian_penalty * Jacobian * W);
 
     W += W_old;
     b_change /= m_batch_size;
-    b_old = momentum * b_old - learning * b_change;
+    // b_old = momentum * b_old - learning * b_change;
+    b_old = momentum * W_old - learning * (W_change + regularizer * W + \
+    jacobian_penalty * Jacobian * b);
     b += b_old;
 
     b_change.fill(0.00);
@@ -384,12 +427,16 @@ void layer::update()
 void layer::update(double weight)
 {
     W_change /= m_batch_size;
-    W_old = momentum * W_old - learning * (W_change + regularizer * W);
-    // W_old = momentum * W_old - learning * (W_change + regularizer * W + (jacobian_penalty / m_batch_size) * jacob_grad);
+    jacobian_penalty /= m_batch_size;
+    // W_old = momentum * W_old - learning * (W_change + regularizer * W);
+    W_old = momentum * W_old - learning * (W_change + regularizer * W + \
+    jacobian_penalty * Jacobian * W);
     W += weight * W_old;
     
     b_change /= m_batch_size;
-    b_old = momentum * b_old - learning * b_change;
+    //b_old = momentum * b_old - learning * b_change;
+    b_old = momentum * W_old - learning * (W_change + regularizer * W + \
+    jacobian_penalty * Jacobian * b);
     b += weight * b_old;
 
     b_change.fill(0.00);

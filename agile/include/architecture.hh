@@ -91,6 +91,7 @@ public:
     void set_learning(const numeric &value);
     void set_momentum(const numeric &value);
     void set_regularizer(const numeric &value);
+    void set_contractive(); // added by Lien
 
 //-----------------------------------------------------------------------------
 //  Prediction and training methods

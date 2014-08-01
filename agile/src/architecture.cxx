@@ -296,4 +296,17 @@ void architecture::set_regularizer(const numeric &value)
         layer->set_regularizer(value);
     }
 }
+void architecture::set_contractive()
+{
+    if (n_layers < 1)
+    {
+        throw std::logic_error(
+            "can't set contractive autoencoder-- network has no layers.");
+    }
+    for (auto &layer : stack)
+    {
+        std::cout << "Setting contractive" << std::endl;
+        layer->set_contractive();
+    }
+}
 //----------------------------------------------------------------------------

@@ -125,7 +125,9 @@ public:
     void backpropagate(const agile::vector &v, double weight);
 
     // gets teh Jacobian matrix
-    void get_jacobian(const agile::vector &v);
+    agile::matrix get_jacobian();
+    void charge_jacobian();
+    agile::vector fire_jacobian();
 
     void update();
     void update(double weight);
@@ -155,7 +157,19 @@ public:
     }
     virtual void set_regularizer(const numeric &value)
     {
-        regularizer = value;
+        if (!contractive)
+            regularizer = value;
+        else
+            throw std::logic_error("Autoencoder cannot be regularized and\
+                contractive at the same time.");
+    }
+    virtual void set_contractive()
+    {
+        if (regularizer == 0)
+            contractive = true;
+        else
+            throw std::logic_error("Autoencoder cannot be regularized and\
+                contractive at the same time.");
     }
     void set_layer_type(const layer_type &type)
     {
@@ -230,7 +244,7 @@ protected:
 
     agile::matrix W,       // current weight matrix
                   W_old,   // previous weight matrix
-                  W_change;// the change to make to W
+                  W_change,// the change to make to W
                   Jacobian;// the Jacobian penalty, 
                            // used for contractive autoencoder functions
 
@@ -244,8 +258,12 @@ protected:
 
     numeric learning,    // learning rate
             momentum,    // momentum (gradient smoothing) parameter
-            regularizer; // l2 regularization scalar
+            regularizer, // l2 regularization scalar
             jacobian_penalty; // jacobian_penalty
+
+    bool contractive;   // whether its a contractive autoencoder
+
+    /* Lien added the Jacobian and contractive members */
 
     layer_type m_layer_type; // what type of layer (linear, sigmoid, etc.)
     agile::types::paradigm m_paradigm; //type of pre-training
