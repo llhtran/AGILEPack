@@ -473,6 +473,7 @@ agile::dataframe tree_reader::get_dataframe(int entries, int start,
         
     }
 
+    // By Lien Tran
     // adding derived variables here
     for (int i = 0; i < n_derived; i++) 
     {
@@ -537,6 +538,9 @@ double tree_reader::operator()(const unsigned int &idx, std::string col_name)
     }
 }
 
+//-----------------------------------------------------------------------------
+//  Predict map for derived variables - Lien Tran
+//-----------------------------------------------------------------------------
 // Lien's code, equivalent of the above operator() but enabling derived variables
 double tree_reader::predict_map(const unsigned int &idx, std::string col_name)
 {
@@ -580,6 +584,9 @@ std::map<std::string, double> tree_reader::operator()(const unsigned int &idx,
 
 }
 
+//-----------------------------------------------------------------------------
+//  Predict map for derived variables - Lien Tran
+//-----------------------------------------------------------------------------
 // Lien's code, equivalent of the above operator() but enabling derived variables
 std::map<std::string, double> tree_reader::predict_map(const unsigned int &idx, 
     const std::vector<std::string> &names)
@@ -652,6 +659,9 @@ std::vector<std::string> tree_reader::get_ordered_branch_names()
 
 //-----------------------------------------------------------------------------
 //  Derived variables - Lien Tran
+//  Access directly from tree_reader
+//  Call to store a derived variable and its formula
+//  These get added to the dataframe at get_dataframe
 //-----------------------------------------------------------------------------
 void tree_reader::add_derived_var(const std::string &derived_name, const std::string &formula)
 {

@@ -296,7 +296,8 @@ void architecture::set_regularizer(const numeric &value)
         layer->set_regularizer(value);
     }
 }
-void architecture::set_contractive()
+// calls set_contractive() for all layers in the neural net
+void architecture::set_contractive() // Added by Lien
 {
     if (n_layers < 1)
     {

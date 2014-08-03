@@ -98,12 +98,24 @@ public:
     std::vector<double> operator[](const unsigned int &idx);
     std::vector<double> operator()(const unsigned int &idx);
     double operator()(const unsigned int &idx, std::string col_name);
-    // Lien's operator() version that allows for derived variables
+
+//-----------------------------------------------------------------------------
+//  Predict map for derived variables - Lien Tran
+//  STILL NEED WORK BECAUSE MEMORY ALLOCATION IS NOT YET EFFICIENT
+//-----------------------------------------------------------------------------
     double predict_map(const unsigned int &idx, std::string col_name);
+
+
     std::map<std::string, double> at(const unsigned int &idx, 
         const std::vector<std::string> &names);
     std::map<std::string, double> operator()(const unsigned int &idx, 
         const std::vector<std::string> &names);
+//-----------------------------------------------------------------------------
+//  Predict map for derived variables - Lien Tran 
+//  STILL NEED WORK BECAUSE MEMORY ALLOCATION IS NOT YET EFFICIENT
+//  How to use: In coordination with neural_net class, ie:
+//  auto predictions = my_net.predict_map(reader.predict_map(jet, input_variables));
+//-----------------------------------------------------------------------------   
     // Lien's operator() version that allows for derived variables
     std::map<std::string, double> predict_map(const unsigned int &idx, 
         const std::vector<std::string> &names);

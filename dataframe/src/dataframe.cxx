@@ -349,6 +349,9 @@ void dataframe::append(dataframe &&D)
 
 //-----------------------------------------------------------------------------
 //  Derived variables - Lien Tran
+//  This function takes the derived variable's name and formula
+//  and inserts another column into the dataframe
+//  by computing and storing its values
 //-----------------------------------------------------------------------------
 void dataframe::add_derived_var(const std::string derived_name, const std::string formula)
 {
@@ -399,6 +402,10 @@ void dataframe::add_derived_var(const std::string derived_name, const std::strin
         for (int i = 0; i < n_var; i++)
         {
             symbol_table.add_variable(used_var[i], row.at(get_column_idx(used_var[i])));
+            
+            // Uncomment to print out individual values in the formula for test
+            //std::cout << "Variable: " + used_var[i] + "   Value: " + \
+            //std::to_string(row.at(get_column_idx(used_var[i]))) << std::endl;
         }
 
         // register table (a pre-computation step)
@@ -407,9 +414,9 @@ void dataframe::add_derived_var(const std::string derived_name, const std::strin
         exprtk::parser<double> parser;
         parser.compile(formula, computed_expression);
 
-        //double y = computed_expression;
-        //std::cout << "Computed: " + std::to_string(y) << std::endl; 
-
+        // Uncomment to print out calculated value for test
+        //std::cout << "Answer: " + derived_name + " = " + std::to_string(computed_expression.value()) << std::endl;
+        
         // add value to last column of current row
         row.push_back(computed_expression.value());
     }

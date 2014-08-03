@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 //  layer.cxx:
 //  Implementation for layer class, responsible for s(Wx+b) calculation
-//  Author: Luke de Oliveira (luke.deoliveira@yale.edu)
+//  Author: Luke de Oliveira (luke.deoliveira@yale.edu) & Lien Tran
 //-----------------------------------------------------------------------------
 
 #include "agile/include/layer.hh"
@@ -348,6 +348,11 @@ void layer::backpropagate(const agile::vector &v, double weight)
     W_change += delta * m_in.transpose(); 
     b_change += delta;
 
+//-----------------------------------------------------------------------------
+//  How to use the contractive autoencoder
+//  - Call set_contractive() in the interface file after having set layers
+//  - Can NOT set_contractive() and set_regularizer at the same time
+//-----------------------------------------------------------------------------
     Jacobian += get_jacobian();
 
     ++ctr;

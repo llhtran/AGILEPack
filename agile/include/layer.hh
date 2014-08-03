@@ -124,9 +124,14 @@ public:
     void backpropagate(const agile::vector &v);
     void backpropagate(const agile::vector &v, double weight);
 
-    // gets teh Jacobian matrix
+//-----------------------------------------------------------------------------
+//  3 functions for the use of contractive autoencoders by Lien Tran
+//-----------------------------------------------------------------------------
+    // calculates the Jacobian matrix
     agile::matrix get_jacobian();
+    // save to W * x + b formula to prepare for derivations
     void charge_jacobian();
+    // pass W * x + b through activation function
     agile::vector fire_jacobian();
 
     void update();
@@ -163,6 +168,15 @@ public:
             throw std::logic_error("Autoencoder cannot be regularized and\
                 contractive at the same time.");
     }
+//-----------------------------------------------------------------------------
+//  set_contractive() - By Lien Tran
+//  HOW TO USE:
+//  Call at the interface file with the neural_net class after having set up layers
+//  The net will then call set_contractive at the layer level for all layers
+//  This activates the contractive autoencoder in the net
+//  Can NOT set_contractive() and set_regularizer() 
+//  A neural net can only be one of the two types
+//-----------------------------------------------------------------------------
     virtual void set_contractive()
     {
         if (regularizer == 0)
@@ -236,6 +250,8 @@ protected:
     // agile::matrix get_jacobian_gradient(agile::vector v);
 //-----------------------------------------------------------------------------
 //  Protected Members
+//  Lien added the Jacobian, jacobian penalty and contractive members
+//  and their corresponding constructors in the .cxx file
 //-----------------------------------------------------------------------------
     int m_inputs,     // number of inputs to the layer
         m_outputs,    // number of outputs leaving the layer
@@ -262,8 +278,6 @@ protected:
             jacobian_penalty; // jacobian_penalty
 
     bool contractive;   // whether its a contractive autoencoder
-
-    /* Lien added the Jacobian and contractive members */
 
     layer_type m_layer_type; // what type of layer (linear, sigmoid, etc.)
     agile::types::paradigm m_paradigm; //type of pre-training
